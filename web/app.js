@@ -472,6 +472,8 @@ function BackgroundTasks({ sessionId, tasks }) {
 }
 
 const termLabel = (t) => `${t.busy ? 'busy' : 'idle'} in terminal${t.tmux ? ` (tmux ${t.tmux.split('.')[0]})` : ''}`;
+// A mouse/trackpad suggests a physical keyboard: there Enter sends (Shift+Enter for a newline); on touch it stays a newline.
+const desktopKeys = matchMedia('(hover: hover) and (pointer: fine)');
 
 function Session({ id }) {
   const [data, setData] = useState(null);
@@ -592,7 +594,12 @@ function Session({ id }) {
       <div class="input-row">
         <${AttachButton} att=${att} disabled=${sending} />
         <textarea ref=${inputRef} rows="1" onPaste=${att.onPaste} placeholder=${inTerminal ? 'Message the terminal session…' : s.live ? 'Message Claude…' : 'Message to resume this session…'} value=${text}
-          onInput=${(e) => setText(e.currentTarget.value)}></textarea>
+          onInput=${(e) => setText(e.currentTarget.value)}
+          onKeyDown=${(e) => {
+            if (e.key !== 'Enter' || e.shiftKey || e.isComposing || inTerminal || !desktopKeys.matches) return;
+            e.preventDefault();
+            if (!sending && !att.busy) send();
+          }}></textarea>
         ${!inTerminal && html`<button class="send" disabled=${sending || att.busy || (!text.trim() && !att.images.length)} onClick=${() => send()} aria-label="Send">↑</button>`}
       </div>
       ${inTerminal && html`<div class="row spaced">
