@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#16161a" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+  <title>pouch</title>
+  <!-- Credentialed, or Chrome fetches it without the Cloudflare Access cookie and install fails. -->
+  <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">
+  <link rel="icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/vendor/xterm.css">
+  <link rel="stylesheet" href="/style.css">
+  <script type="importmap">
+    { "imports": {
+      "preact": "/vendor/preact.mjs",
+      "preact/hooks": "/vendor/hooks.mjs",
+      "htm": "/vendor/htm.mjs",
+      "marked": "/vendor/marked.mjs",
+      "dompurify": "/vendor/purify.mjs",
+      "@xterm/xterm": "/vendor/xterm.mjs",
+      "@xterm/addon-fit": "/vendor/addon-fit.mjs",
+      "uqr": "/vendor/uqr.mjs",
+      "jsqr-es6": "/vendor/jsqr.mjs"
+    } }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

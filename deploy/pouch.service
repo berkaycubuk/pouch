@@ -1,0 +1,22 @@
+[Unit]
+Description=pouch - phone UI for Claude Code
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/Projects/pouch
+# Point PATH at your Node (22+); `node` and `claude` must be on it.
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# Localhost only; `tailscale serve --bg --https=443 http://127.0.0.1:8787` exposes it
+# to your tailnet over HTTPS.
+Environment=POUCH_HOST=127.0.0.1
+Environment=POUCH_PORT=8787
+# Tailscale logins that skip the token (see README "Login"), e.g. you@example.com
+#Environment=POUCH_TAILSCALE_USERS=
+# Bill ANTHROPIC_API_KEY instead of the Claude Code login
+#Environment=POUCH_USE_API_KEY=1
+ExecStart=/usr/bin/env node node_modules/tsx/dist/cli.mjs src/server.ts
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

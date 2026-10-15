@@ -1,0 +1,9 @@
+[Unit]
+Description=pouch - deploy origin/main if it moved
+
+[Service]
+Type=oneshot
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=POUCH_APP_DIR=%h/Projects/pouch
+Environment=POUCH_PORT=8787
+ExecStart=/usr/bin/bash %h/Projects/pouch/deploy/autodeploy.sh
