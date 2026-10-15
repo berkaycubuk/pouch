@@ -4,6 +4,25 @@ Phone-first web UI for running and steering Claude Code sessions on your own dev
 Start a task from your phone, approve tool calls from a notification, read the diff, and pick the
 same session up later in a terminal.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dashboard-dark.png">
+    <img src="docs/screenshots/dashboard-light.png" alt="Dashboard: sessions waiting for you first, with an approval card for a git push" width="200">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/chat-dark.png">
+    <img src="docs/screenshots/chat-light.png" alt="Chat: tool calls collapsed to one line each, a reply in Markdown, and Approve/Always/Deny for the next command" width="200">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/question-dark.png">
+    <img src="docs/screenshots/question-light.png" alt="A question from Claude shown as option buttons" width="200">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/diff-dark.png">
+    <img src="docs/screenshots/diff-light.png" alt="Changes: one file's uncommitted diff, swipe for the next file" width="200">
+  </picture>
+</p>
+
 A personal project, shared as is. Issues and PRs are welcome, but there's no support promise.
 It's built for one person on their own machine: there are no user accounts, and everyone who can
 log in can do everything.
