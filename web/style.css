@@ -59,6 +59,7 @@ a { color: var(--accent); }
 }
 .topbar-row { display: flex; align-items: center; gap: 0; min-height: 56px; padding: 0 4px 0 16px; }
 .topbar-row:has(> .back) { padding-left: 4px; }
+.pane .topbar-row:has(> .back.home) { padding-left: 16px; }
 .topbar h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -0.01em; }
 .topbar .title { flex: 1; min-width: 0; padding: 0 4px; line-height: 1.25; }
 .topbar .title b { display: block; font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -347,3 +348,14 @@ a.pr-link { display: block; color: var(--accent); text-decoration: none; margin-
 .bg-main { flex: 1; min-width: 0; word-break: break-word; }
 .bg-main small { color: var(--muted); display: block; }
 .bg-type { font-size: 12px; font-weight: 600; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); color: var(--muted); }
+
+/* Wide screens: dashboard sidebar next to the open screen */
+.split { display: flex; height: 100%; }
+.sidebar { width: 380px; flex-shrink: 0; height: 100%; border-right: 1px solid var(--border); }
+.pane { flex: 1; min-width: 0; height: 100%; }
+.pane .screen { max-width: 1000px; }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.placeholder { align-items: center; justify-content: center; gap: 12px; }
+.placeholder .empty { padding: 0; }
+/* The dashboard is already in the sidebar. */
+.pane .back.home { display: none; }

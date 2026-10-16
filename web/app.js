@@ -49,6 +49,8 @@ function useSocket(fn) {
 function useConnected() {
   const [on, setOn] = useState(connected);
   useSocket((m) => { if (m.type === 'connected') setOn(true); if (m.type === 'disconnected') setOn(false); });
+  // The socket may have opened between render and subscribing.
+  useEffect(() => setOn(connected), []);
   return on;
 }
 
@@ -239,7 +241,7 @@ function TopBar({ children, back }) {
   }, [on]);
   return html`<header class="topbar">
     <div class="topbar-row">
-      ${back && html`<button class="icon-btn back" onClick=${() => go(back)} aria-label="Back"><${Icon} name="back" /></button>`}
+      ${back && html`<button class=${`icon-btn back${back === '#/' ? ' home' : ''}`} onClick=${() => go(back)} aria-label="Back"><${Icon} name="back" /></button>`}
       ${children}
     </div>
     ${offline && html`<div class="offline">Reconnecting…</div>`}
@@ -302,8 +304,8 @@ const mergeSession = (cur, session, keep = () => true) => {
   return rest.length === cur.length && !keep(session) ? cur : [session, ...rest].sort(bySessionRank);
 };
 
-function SessionCard(s) {
-  return html`<div class=${`card ${s.status}`} key=${s.id}>
+function SessionCard(s, sel) {
+  return html`<div class=${`card ${s.status}${s.id === sel ? ' sel' : ''}`} key=${s.id}>
     <div onClick=${() => go(`#/s/${s.id}`)}>
       <div class="card-head"><b>${s.title}</b><span class=${`pill ${s.status}`}>${statusLabel(s)}</span></div>
       <div class="meta">${base(s.cwd)} · ${ago(s.lastActivity)}${s.terminal?.tmux ? ` · tmux ${s.terminal.tmux.split('.')[0]}` : ''}${s.tasks?.length ? html` · <span class="bg-count">⚙ ${s.tasks.length} in background</span>` : ''}</div>
@@ -379,14 +381,15 @@ const openShell = async (cwd) => {
   catch (e) { alert(e.message); }
 };
 
-function ShellCard(s) {
-  return html`<div class="card" key=${s.id} onClick=${() => go(`#/t/${s.id}`)}>
+function ShellCard(s, sel) {
+  return html`<div class=${`card${s.id === sel ? ' sel' : ''}`} key=${s.id} onClick=${() => go(`#/t/${s.id}`)}>
     <div class="card-head"><b>${base(s.cwd)}</b><span class="pill idle">${base(s.process)}</span></div>
     <div class="meta">Terminal · opened ${ago(s.created)}${ago(s.created) === 'now' ? '' : ' ago'}</div>
   </div>`;
 }
 
-function Dashboard() {
+// `sel` is the session or shell open next to the sidebar on wide screens.
+function Dashboard({ sel }) {
   const [list, setList] = useState(null);
   const [projects, setProjects] = useState([]);
   const [system, setSystem] = useState(null);
@@ -420,12 +423,12 @@ function Dashboard() {
       ${system && html`<${SystemStats} s=${system} />`}
       ${list === null && html`<div class="empty">Loading…</div>`}
       ${list && !active.length && !shells.length && html`<div class="empty">No running sessions.<br/>Start one below.</div>`}
-      ${active.map(SessionCard)}
-      ${shells.map(ShellCard)}
+      ${active.map((s) => SessionCard(s, sel))}
+      ${shells.map((s) => ShellCard(s, sel))}
       <${ProjectList} projects=${projects} />
       ${recent.length > 0 && html`<div class="section-label" onClick=${() => setShowOld(!showOld)}>
         Recent sessions (${recent.length}) ${showOld ? '▾' : '▸'}</div>`}
-      ${showOld && recent.map(SessionCard)}
+      ${showOld && recent.map((s) => SessionCard(s, sel))}
     </div>
     <div class="fab-bar"><button class="btn primary wide" onClick=${() => go('#/new')}>+ New task</button></div>
   </div>`;
@@ -864,12 +867,12 @@ function Project({ name }) {
         })}`}
       ${p && html`<div class="section-label">Sessions</div>`}
       ${p && !active.length && html`<div class="empty small">Nothing running here.</div>`}
-      ${active.map(SessionCard)}
+      ${active.map((s) => SessionCard(s))}
       ${shells.length > 0 && html`<div class="section-label">Terminals (${shells.length})</div>`}
-      ${shells.map(ShellCard)}
+      ${shells.map((s) => ShellCard(s))}
       ${recent.length > 0 && html`<div class="section-label" onClick=${() => setShowOld(!showOld)}>
         Recent sessions (${recent.length}) ${showOld ? '▾' : '▸'}</div>`}
-      ${showOld && recent.map(SessionCard)}
+      ${showOld && recent.map((s) => SessionCard(s))}
       ${p && html`<button class="btn small danger delete-project" disabled=${deleting} onClick=${del}>${deleting ? 'Checking…' : 'Delete project'}</button>`}
     </div>
     <div class="fab-bar split">
@@ -1384,8 +1387,37 @@ function Toasts() {
 
 // ---------- router ----------
 
+// Wide screens keep the dashboard as a sidebar next to whatever screen is open.
+const wideQuery = matchMedia('(min-width: 1000px)');
+function useWide() {
+  const [wide, setWide] = useState(wideQuery.matches);
+  useEffect(() => {
+    const f = () => setWide(wideQuery.matches);
+    wideQuery.addEventListener('change', f);
+    return () => wideQuery.removeEventListener('change', f);
+  }, []);
+  return wide;
+}
+
 function App() {
   const hash = useHash();
+  const wide = useWide();
+  if (!wide) return html`<${Route} hash=${hash} />`;
+  const sel = hash.match(/^#\/[st]\/([\w-]+)/)?.[1];
+  return html`<div class="split">
+    <aside class="sidebar"><${Dashboard} sel=${sel} /></aside>
+    <main class="pane"><${Route} hash=${hash} wide /></main>
+  </div>`;
+}
+
+function Placeholder() {
+  return html`<div class="screen placeholder">
+    <div class="empty">Pick a session on the left, or start a new one.</div>
+    <button class="btn primary" onClick=${() => go('#/new')}>+ New task</button>
+  </div>`;
+}
+
+function Route({ hash, wide }) {
   const d = hash.match(/^#\/s\/([\w-]+)\/changes\/(\d+)$/);
   if (d) return html`<${FileDiff} id=${d[1]} index=${Number(d[2])} />`;
   const cs = hash.match(/^#\/s\/([\w-]+)\/settings$/);
@@ -1405,7 +1437,7 @@ function App() {
   if (hash === '#/scan') return html`<${ScanQR} />`;
   if (hash === '#/settings') return html`<${Settings} />`;
   if (hash === '#/add') return html`<${AddProject} />`;
-  return html`<${Dashboard} />`;
+  return wide ? html`<${Placeholder} />` : html`<${Dashboard} />`;
 }
 
 render(html`<${App} /><${Toasts} />`, document.getElementById('app'));
